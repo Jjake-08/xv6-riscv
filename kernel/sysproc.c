@@ -110,3 +110,15 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// Wait for a child and return its exit status and CPU usage.
+uint64
+sys_wait2(void)
+{
+  uint64 status_addr;
+  uint64 usage_addr;
+
+  argaddr(0, &status_addr);
+  argaddr(1, &usage_addr);
+  return kwait2(status_addr, usage_addr);
+}

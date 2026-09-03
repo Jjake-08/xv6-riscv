@@ -1,4 +1,5 @@
 #include "types.h"
+#include "pstat.h"
 #include "param.h"
 #include "memlayout.h"
 #include "riscv.h"
@@ -698,5 +699,67 @@ procdump(void)
       state = "???";
     printk("%d %s %s", p->pid, state, p->name);
     printk("\n");
+  }
+}
+// Wait for a child and copy its exit status and CPU usage.
+int
+kwait2(uint64 status_addr, uint64 usage_addr)
+{
+  struct proc *pp;
+  int havekids, pid;
+  struct proc *p = myproc();
+
+  acquire(&wait_lock);
+
+  for (;;) {
+    havekids = 0;
+    for (pp = proc; pp < &proc[NPROC]; pp++) {
+      if (pp->parent == p) {
+        acquire(&pp->lock);
+        havekids = 1;
+
+        if (pp->state == ZOMBIE) {
+          pid = pp->pid;
+
+          if (status_addr != 0 &&
+              copyout(p->pagetable, p->sz, status_addr,
+                      (char *)&pp->xstate, sizeof(pp->xstate)) < 0) {
+            release(&pp->lock);
+            release(&wait_lock);
+            return -1;
+          }
+
+          // Copy usage before freeproc() releases the child.
+          struct rusage usage;
+          usage.cputime = pp->cputime;
+
+          if (usage_addr != 0 &&
+              copyout(p->pagetable, p->sz, usage_addr,
+                      (char *)&usage, sizeof(usage)) < 0) {
+            release(&pp->lock);
+            release(&wait_lock);
+            return -1;
+          }
+
+          pp->parent = 0;
+          freeproc(pp);
+          release(&pp->lock);
+          release(&wait_lock);
+          return pid;
+        }
+        release(&pp->lock);
+      }
+    }
+
+    if (!havekids || killed(p)) {
+      release(&wait_lock);
+      return -1;
+    }
+
+    // Sleep until a child exits, then scan again.
+    sleep_prepare(p);
+    release(&wait_lock);
+    sleep();
+    acquire(&wait_lock);
   }
 }

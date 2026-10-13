@@ -82,7 +82,7 @@ usertrap(void)
     kexit(-1);
 
   if (which_dev == 2) {
-  p->cputime++; // Count a CPU tick spent running this process.
+  p->cputime++; // Count a CPU tick spent running this process. [ADDED BY ME]
   yield();
 }
 
@@ -155,8 +155,8 @@ kerneltrap()
   }
 
   if (which_dev == 2 && myproc() != 0) {
-  myproc()->cputime++; // Count a CPU tick spent in kernel mode.
-  yield();
+  myproc()->cputime++; // Count a CPU tick spent in kernel mode.(ADDED BY ME)
+  yield();//If this is a timer interrupt and there is a current process, increase its CPU counter, then yield.
 }
 
   // the yield() may have caused some traps to occur,

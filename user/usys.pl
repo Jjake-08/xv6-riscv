@@ -43,4 +43,4 @@ entry("sbrk");
 entry("pause");
 entry("uptime");
 entry("sync");
-entry("wait2");
+entry("wait2"); #added by me

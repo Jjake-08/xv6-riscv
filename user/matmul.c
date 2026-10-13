@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
 
   int i, j, k, iterations, ii;
   //int echo;
-  static int a[ROWS][COLUMNS];
-  static int b[ROWS][COLUMNS];
+  static int a[ROWS][COLUMNS]; //edited to be large matrix arrays
+  static int b[ROWS][COLUMNS]; //help prevent overflowing the stack
   static int c[ROWS][COLUMNS];
  
   /* Start timing */
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
   int end_time = uptime();
 
   /* Report Time */
-  printf("Result check: %d\n", c[0][0]);
+  printf("Result check: %d\n", c[0][0]); //expected value 6000
   printf("Time: %d ticks\n", end_time - start_time);
 
   exit(0);

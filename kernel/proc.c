@@ -763,3 +763,50 @@ kwait2(uint64 status_addr, uint64 usage_addr)
     acquire(&wait_lock);
   }
 }
+// Copy active process information into an NPROC-sized user array.
+int
+getprocs(uint64 addr)
+{
+  struct proc *p;
+  struct proc *caller = myproc();
+  struct pstat info;
+  int n = 0;
+
+  // Check that the user's array fits within its memory.
+  if (addr >= caller->sz ||
+      sizeof(struct pstat) * NPROC > caller->sz - addr)
+    return -1;
+
+  for (p = proc; p < &proc[NPROC]; p++) {
+    // Protect parent information before locking the process.
+    acquire(&wait_lock);
+    acquire(&p->lock);
+
+    // Skip empty slots and processes still being created.
+    if (p->state == UNUSED || p->state == USED) {
+      release(&p->lock);
+      release(&wait_lock);
+      continue;
+    }
+
+    memset(&info, 0, sizeof(info));
+    info.pid = p->pid;
+    info.state = p->state;
+    info.size = p->sz;
+    info.ppid = p->parent ? p->parent->pid : 0;
+    safestrcpy(info.name, p->name, sizeof(info.name));
+
+    release(&p->lock);
+    release(&wait_lock);
+
+    // Copy this record from kernel memory into user memory.
+    if (copyout(caller->pagetable, caller->sz,
+                addr + n * sizeof(info),
+                (char *)&info, sizeof(info)) < 0)
+      return -1;
+
+    n++;
+  }
+
+  return n;
+}

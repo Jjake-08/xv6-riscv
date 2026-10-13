@@ -4,5 +4,14 @@
 struct rusage {
   uint cputime; // CPU ticks used by the child process
 };
+enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+
+struct pstat {
+  int pid;               // Process ID
+  enum procstate state;  // Current process state
+  uint64 size;           // Memory size in bytes
+  int ppid;              // Parent process ID
+  char name[16];         // Process name
+};
 
 #endif

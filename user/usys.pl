@@ -44,3 +44,4 @@ entry("pause");
 entry("uptime");
 entry("sync");
 entry("wait2"); #added by me
+entry("getprocs"); #added by me

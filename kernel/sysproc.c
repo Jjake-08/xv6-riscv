@@ -122,3 +122,12 @@ sys_wait2(void)
   argaddr(1, &usage_addr);
   return kwait2(status_addr, usage_addr);
 }
+// Retrieve process information into the user's array.
+uint64
+sys_getprocs(void)
+{
+  uint64 addr;
+
+  argaddr(0, &addr);
+  return getprocs(addr);
+}

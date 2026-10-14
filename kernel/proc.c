@@ -454,8 +454,8 @@ scheduler(void)
 
     int found = 0;
    #if SCHED_POLICY == SCHED_RR
-    for (p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
+   for (p = proc; p < &proc[NPROC]; p++) {
+     acquire(&p->lock);
       if (p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
@@ -481,9 +481,21 @@ scheduler(void)
     // Find the runnable process with the highest priority.
     for (p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if (p->state == RUNNABLE && p->priority > highest) {
-        best = p;
-        highest = p->priority;
+            if (p->state == RUNNABLE) {
+        int effective = p->priority;
+
+#if USE_AGING
+        uint age = ticks - p->readytime;
+        if (age > (uint)(MAXEFFPRIORITY - effective))
+          effective = MAXEFFPRIORITY;
+        else
+          effective += age;
+#endif
+
+        if (effective > highest) {
+          best = p;
+          highest = effective;
+        }
       }
       release(&p->lock);
     }

@@ -133,6 +133,7 @@ UPROGS=\
 	$U/_ps\
 	$U/_prioritytest\
 	$U/_schedtest\
+	$U/_agingtest\
 	$U/_time\
 	$U/_matmul\
 	$U/_sleep\

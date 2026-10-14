@@ -16,3 +16,5 @@
 #define SCHED_RR       1
 #define SCHED_PRIORITY 2
 #define SCHED_POLICY SCHED_PRIORITY
+#define MAXEFFPRIORITY 99
+#define USE_AGING      1  // 1 enables aging; 0 disables it for comparison

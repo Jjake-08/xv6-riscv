@@ -132,6 +132,7 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 UPROGS=\
 	$U/_ps\
 	$U/_prioritytest\
+	$U/_schedtest\
 	$U/_time\
 	$U/_matmul\
 	$U/_sleep\

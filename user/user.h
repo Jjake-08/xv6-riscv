@@ -5,6 +5,8 @@ struct rusage;//(ADDED BY ME)
 struct pstat; //added by me
 // system calls
 int getprocs(struct pstat *); //added by me
+int getpriority(void);
+int setpriority(int);
 int fork(void);
 int exit(int) __attribute__((noreturn));
 int wait(int *);

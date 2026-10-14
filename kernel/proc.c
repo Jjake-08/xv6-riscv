@@ -126,6 +126,7 @@ found:
   p->pid = allocpid();
   p->state = USED;
   p->cputime = 0;
+  p->priority = 0; // Default base priority
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
@@ -260,9 +261,13 @@ growproc(int n)
 int
 kfork(void)
 {
-  int i, pid;
+  int i, pid, parent_priority;
   struct proc *np;
   struct proc *p = myproc();
+// Read the parent's priority before allocating the child.
+  acquire(&p->lock);
+  parent_priority = p->priority;
+  release(&p->lock);
 
   // Allocate process.
   if ((np = allocproc()) == 0) {
@@ -276,6 +281,7 @@ kfork(void)
     return -1;
   }
   np->sz = p->sz;
+  np->priority = parent_priority; // Child inherits parent's priority
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -791,6 +797,7 @@ getprocs(uint64 addr)
 
     memset(&info, 0, sizeof(info));
     info.pid = p->pid;
+    info.priority = p->priority;
     info.state = p->state;
     info.size = p->sz;
     info.ppid = p->parent ? p->parent->pid : 0;

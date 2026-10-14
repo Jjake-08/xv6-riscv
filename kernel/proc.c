@@ -127,6 +127,7 @@ found:
   p->state = USED;
   p->cputime = 0;
   p->priority = 0; // Default base priority
+  p->readytime = 0; // Initialize before the process becomes runnable
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
@@ -229,6 +230,7 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
+  p->readytime = ticks;
 
   release(&p->lock);
 }
@@ -307,6 +309,7 @@ kfork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  np->readytime = ticks;
   release(&np->lock);
 
   return pid;
@@ -511,6 +514,8 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
+  p->readytime = ticks;
+
   sched();
   release(&p->lock);
 }
@@ -597,6 +602,7 @@ wakeup(void *chan)
       // go to sleep, also set it back to RUNNING.
       if (p->state == SLEEPING) {
         p->state = RUNNABLE;
+	p->readytime = ticks;
       }
     }
     release(&p->lock);
@@ -618,6 +624,7 @@ kkill(int pid)
       if (p->state == SLEEPING) {
         // Wake process from sleep().
         p->state = RUNNABLE;
+	p->readytime = ticks;
       }
       release(&p->lock);
       return 0;
@@ -798,6 +805,7 @@ getprocs(uint64 addr)
     memset(&info, 0, sizeof(info));
     info.pid = p->pid;
     info.priority = p->priority;
+    info.readytime = p->readytime;
     info.state = p->state;
     info.size = p->sz;
     info.ppid = p->parent ? p->parent->pid : 0;
